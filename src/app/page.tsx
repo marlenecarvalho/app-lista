@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Checkbox from './components/Checkbox/Checkbox'
-
+import CategoriaDropdown from './components/CategoriaDropdown/CategoriaDropdown'
 
 // Tipo do item da lista de compras
 type Item = {
@@ -25,34 +25,26 @@ export default function List() {
   const [items, setItems] = useState<Item[]>([]) // Lista de itens
   const [newItem, setNewItem] = useState("") // Nome do novo item
   const [newQuantidade, setNewQuantidade] = useState("") // Quantidade do novo item
-  const [categoria, setCategoria] = useState<string>("") // Categoria selecionada
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("")
 
-  // Lista de categorias fixas
-  const categorias: Categoria[] = [
-    { nome: "Frutas", emoji: "🍎", cor: "text-red-500", descricao: "Frutas frescas" },
-    { nome: "Padaria", emoji: "🥖", cor: "text-yellow-700", descricao: "Pães e massas" },
-    { nome: "Legumes", emoji: "🥕", cor: "text-green-600", descricao: "Legumes e verduras" },
-    { nome: "Carnes", emoji: "🍖", cor: "text-pink-800", descricao: "Carnes e proteínas" },
-    { nome: "Bebidas", emoji: "🍹", cor: "text-blue-600", descricao: "Bebidas em geral" },
-  ]
-
+ 
   // Função para adicionar um novo item na lista
   const handlerAddItem = () => {
     // Só adiciona se o nome e a categoria estiverem preenchidos
-    if (newItem.trim() !== "" && categoria !== "") {
+    if (newItem.trim() !== "" && categoriaSelecionada !== "") {
       setItems([
         ...items, // copia os itens anteriores
         {
           nome: newItem.trim(),
           comprado: false,
           quantidade: newQuantidade,
-          categoria: categoria
+          categoria: categoriaSelecionada
         }
       ])
       // Limpa os campos após adicionar
       setNewItem("")
       setNewQuantidade("")
-      setCategoria("")
+      setCategoriaSelecionada("")
     }
   }
 
@@ -88,14 +80,14 @@ export default function List() {
     <main className="min-h-screen bg-black text-white p-6">
       {/* Imagem de topo */}
       <div className="bg-black bg-cover">
-        <img src="/imagem.png" alt="Topo" className="w-full h-auto" />
+        <img src="/imagem.png" alt="Topo" className="w-screen h-auto" />
       </div>
 
       {/* Título da página */}
       <h1 className="w-[720px] h-[24px] rotate-[0deg] opacity-100 absolute top-[88px] left-[360px] font-inter font-bold text-[24px] leading-[100%] tracking-[3%] align-middle">Lista de Compras</h1>
 
       {/* Formulário para adicionar itens */}
-      <div className="w-[720px] h-[60px] rotate-[0deg] opacity-100 absolute top-[144px] left-[360px] flex gap-[12px]">
+      <div className="w-full h-16 opacity-100 absolute top-36 left-1/2 -translate-x-1/2 gap-3 rotate-0">
         {/* Input do nome do item */}
         <input
           type="text"
@@ -116,22 +108,26 @@ export default function List() {
 
         {/* Select da categoria */}
         <select
-          value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
+          value={categoriaSelecionada}
+          onChange={(e) => setCategoriaSelecionada(e.target.value)}
           className="border text-white h-10 border-purple-500 p-2 rounded w-48 text-black"
         >
           <option value="">Selecione</option>
-          {categorias.map((cat) => (
+          {/* {categorias.map((cat) => (
             <option key={cat.nome} value={cat.nome}>
               {cat.emoji} {cat.nome}
-            </option>
-          ))}
+            </option> */}
+            <CategoriaDropdown
+            selected={categoriaSelecionada}
+            onSelect= {setCategoriaSelecionada}
+            />
+          
         </select>
 
         {/* Botão de adicionar item */}
         <button
           onClick={handlerAddItem}
-          className="bg-[#7450AC] text-white h-10 px-4 rounded hover:bg-purple-600 transition"
+          className="bg-[#7450AC] text-white h-10 px-4 rounded-full hover:bg-purple-600 transition"
         >
           +
         </button>
@@ -142,7 +138,7 @@ export default function List() {
         
         {items.map((item, index) => {
           // Busca os detalhes da categoria para exibir cor, emoji e descrição
-          const cat = categorias.find((c) => c.nome === item.categoria)
+          const cat = categoriaSelecionada.find((c) => c.nome === item.categoria)
           return (
             <li
               key={index}
@@ -183,7 +179,7 @@ export default function List() {
               {/* Botão para remover item */}
               <button
                 onClick={() => handlerRemoveItem(index)}
-                className="bg-red-500 px-3 py-1 rounded text-white hover:bg-red-600 transition"
+                className="bg-red-500 px-3 py-1 rounded-full text-white hover:bg-red-600 transition"
               >
                 X
               </button>
