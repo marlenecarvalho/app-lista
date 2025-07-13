@@ -1,91 +1,121 @@
-// import { Image } from 'expo-image';
-// import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Platform, Image } from 'react-native';
+import { LucideIcon, Plus } from 'lucide-react-native';
+import InputItem from '@/components/InputItem/InputItem';
+import InputFields from '@/components/InputField/InputField';
+import CategoriaDropdown from '@/components/CategoriaDropdown/CategoriaDropdown';
+import { Apple, Carrot, Beef, Sandwich, Milk } from 'lucide-react-native';
 
-// import { HelloWave } from '@/components/HelloWave';
-// import ParallaxScrollView from '@/components/ParallaxScrollView';
-// import { ThemedText } from '@/components/ThemedText';
-// import { ThemedView } from '@/components/ThemedView';
+type ItemProps = {
+  value: string;
+  comprado: boolean;
 
-// screens/ListScreen.tsx
-import React, { useState } from 'react'
-import { View, Text, TextInput, FlatList, TouchableOpacity, ImageBackground, StyleSheet } from 'react-native'
+}
+type Categoria = {
+  nome: string;
+  emoji: LucideIcon;
+  cor: string;
+  descricao: string;
+};
+
+type Props = {
+  selected: string; 
+  onSelect: (categoria: string) => void;
+  categorias: Categoria[];
+};
 
 
-const categorias = [
-  { nome: "Frutas", emoji: "🍎", cor: "#FF4C4C", descricao: "Frutas frescas" },
-  { nome: "Padaria", emoji: "🥖", cor: "#FFD700", descricao: "Pães e massas" },
-  { nome: "Legumes", emoji: "🥕", cor: "#32CD32", descricao: "Legumes e verduras" },
-  { nome: "Carnes", emoji: "🍖", cor: "#FF69B4", descricao: "Carnes e proteínas" },
-  { nome: "Bebidas", emoji: "🍹", cor: "#1E90FF", descricao: "Bebidas" }
-]
 
-export default function ListScreen() {
-  const [item, setItem] = useState("")
-  const [quantidade, setQuantidade] = useState("")
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("")
+export default function Lista() {
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<Categoria | null>(null);
+  const [categorias, setCategorias] = useState<Categoria[]>([
+    {nome: "Fruta", emoji: Apple, descricao:"Fruta", cor: "bg-[#E07B67]" },
+    {nome: "Legume", emoji: Carrot, descricao:"Legume", cor: "bg-[#8CAD51]" },
+    {nome: "Carne", emoji: Beef, descricao:"Carne", cor: "bg-[#DB5BBF]" },
+    {nome: "Padaria", emoji: Sandwich, descricao:"Padaria", cor: "bg-[#BB9F3A]" },
+    {nome: "Bebida", emoji: Milk, descricao:"Bebida", cor: "bg-[#7B94CB]" },
+
+  ]); 
+
+  
+
+  const [items, setItems] = useState<ItemProps[]>([]);
+  const [newItem, setNewItem] = useState("");
+  const [newQuantidade, setNewQuantidade] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [unidadeMedida, setUnidadeMedida] = useState("Un");
+  const [menuAberto, setMenuAberto] = useState<number | null>(null);
+
+  const handlerSelectCategoria = (categoria: string) => {
+   const categoriaSelecionada = categorias.find(cat => cat.nome === categoria) || null;
+  // Aqui você pode atualizar o estado ou fazer outras ações com a categoria selecionada
+};
+  
 
   return (
-    <ImageBackground source={require('../../../assets/images/imagem.png')} style={styles.background}>
-      <View style={styles.container}>
-        <Text style={styles.titulo}>Lista de Compras</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Image source={require('../../assets/images/imagem.png')} style={styles.image} />
+        <Text style={styles.title}>Lista de Compras</Text>
+      </View>
+      <View style={styles.inputsWrapper}>
+        {/* Input do nome do item */}
+        <InputItem value={newItem} onChangeText={setNewItem} />
 
-        <TextInput
-          placeholder="Item"
-          value={item}
-          onChangeText={setItem}
-          style={styles.input}
+        {/* Input da quantidade e unidade */}
+        <InputFields
+          item={newItem}
+          quantidade={Number(newQuantidade)}
+          unidade={unidadeMedida}
+          onChangeItem={setNewItem}
+          onChangeQuantidade={(qtd) => setNewQuantidade(qtd)}
+          onChangeUnidade={setUnidadeMedida}
         />
 
-        <TextInput
-          placeholder="Quantidade"
-          value={quantidade}
-          onChangeText={setQuantidade}
-          style={styles.input}
-        />
-
-        <FlatList
-          data={categorias}
-          horizontal
-          keyExtractor={(item) => item.nome}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => setCategoriaSelecionada(item.nome)}
-              style={[styles.categoria, { backgroundColor: item.cor }]}
-            >
-              <Text>{item.emoji} {item.nome}</Text>
-            </TouchableOpacity>
-          )}
+        {/* Dropdown de categorias */}
+        <CategoriaDropdown
+          selected={categoriaSelecionada?.nome || ""}
+          onSelect={handlerSelectCategoria}
+          categorias={categorias}
         />
       </View>
-    </ImageBackground>
-  )
+
+
+    </ScrollView>
+      
+  );
 }
 
+
+
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: 'cover'
-  },
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center'
+    backgroundColor: '#1C1C1C',
   },
-  titulo: {
+  header: {
+    position: 'relative',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  image: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+
+  },
+  title: {
+    position: 'absolute',
+    top: '80%',
+    left: '25%',
+    transform: [{ translateX: -75 }, { translateY: -20 }],
+    color: '#FFFFFF',
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20
+    fontWeight: 'bold', 
+    fontFamily: 'Inter',
   },
-  input: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10
+  inputsWrapper: {
+    padding: 16,
+    gap: 12,
   },
-  categoria: {
-    padding: 10,
-    borderRadius: 8,
-    marginRight: 10
-  }
-})
+});

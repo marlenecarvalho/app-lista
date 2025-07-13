@@ -1,36 +1,41 @@
-'use client' // Diz ao Next.js que este componente roda no lado do cliente (browser)
+'use client' // Indica que esse componente roda no cliente (necessário no Next.js 13+ para hooks)
 
 import { useState } from 'react'
 import Checkbox from './components/Checkbox/Checkbox'
+import { categorias } from './components/CategoriaDropdown/CategoriaDropdown'
 import CategoriaDropdown from './components/CategoriaDropdown/CategoriaDropdown'
+import { MoreVertical, Plus } from 'lucide-react'
 
-// Tipo do item da lista de compras
+// Define o tipo de um item da lista
 type Item = {
   nome: string
   comprado: boolean
   quantidade: string
   categoria: string
-}
-
-// Tipo para as categorias disponíveis
-type Categoria = {
-  nome: string
-  cor: string
-  emoji: string
-  descricao: string
+  unidadeMedida?: string // opcional, pode ser usado para categorias específicas
 }
 
 export default function List() {
-  // Estados da aplicação
-  const [items, setItems] = useState<Item[]>([]) // Lista de itens
-  const [newItem, setNewItem] = useState("") // Nome do novo item
-  const [newQuantidade, setNewQuantidade] = useState("") // Quantidade do novo item
+  // Estado para armazenar os itens da lista
+  const [items, setItems] = useState<Item[]>([])
+
+  // Estado para o nome do novo item
+  const [newItem, setNewItem] = useState("")
+
+  // Estado para a quantidade
+  const [newQuantidade, setNewQuantidade] = useState("")
+
+  // Estado para a categoria selecionada
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("")
 
- 
-  // Função para adicionar um novo item na lista
+  // Estado para unidade de medida (opcional, pode ser usado para categorias específicas)
+  const [unidadeMedida, setUnidadeMedida] = useState("")
+  
+  // Estado para controlar qual item estará com menu aberto
+  const [menuAberto, setMenuAberto] = useState<number | null>(null)
+
+  // Adiciona um novo item à lista
   const handlerAddItem = () => {
-    // Só adiciona se o nome e a categoria estiverem preenchidos
     if (newItem.trim() !== "" && categoriaSelecionada !== "") {
       setItems([
         ...items, // copia os itens anteriores
@@ -38,17 +43,19 @@ export default function List() {
           nome: newItem.trim(),
           comprado: false,
           quantidade: newQuantidade,
-          categoria: categoriaSelecionada
+          categoria: categoriaSelecionada,
+          unidadeMedida: unidadeMedida  // se unidadeMedida estiver vazio, não adiciona
         }
       ])
-      // Limpa os campos após adicionar
+      // Limpa os campos
       setNewItem("")
       setNewQuantidade("")
       setCategoriaSelecionada("")
+      setUnidadeMedida("Un")
     }
   }
 
-  // Alterna o estado "comprado" de um item da lista
+  // Alterna entre comprado / não comprado
   const handlerToggleItem = (index: number) => {
     const novaLista = items.map((item, i) =>
       i === index ? { ...item, comprado: !item.comprado } : item
@@ -62,127 +69,135 @@ export default function List() {
     setItems(novaLista)
   }
 
-  // Mostra um alerta ao clicar no nome do item (exemplo simples de interação)
-  const handlerClickItem = (item: string) => {
-    alert(`Item clicado: ${item}`)
-  }
-
-  // Atualiza a quantidade de um item da lista
-  const handlerChangeQuantidade = (index: number, novaQtd: string) => {
-    const novaLista = items.map((item, i) =>
-      i === index ? { ...item, quantidade: novaQtd } : item
-    )
-    setItems(novaLista)
-  }
-
-  // Aqui começa o layout visual da lista
+  // Interface da aplicação
   return (
-    <main className="min-h-screen bg-black text-white p-6">
+    <main className="absolute min-h-screen bg-black text-white">
       {/* Imagem de topo */}
-      <div className="bg-black bg-cover">
-        <img src="/imagem.png" alt="Topo" className="w-screen h-auto" />
-      </div>
+      <div className="relative bg-black bg-cover">
+        <img src="/imagem.png" alt="Topo" className="w-full h-auto object-cover" />
+        <h1 className=" absolute top-1/2 left-130 transform -translate-x-1/2 -translate-y-1/2 text-white text-3xl font-bold font-inter drop-shadow-lg">Lista de Compras</h1>
+      
 
-      {/* Título da página */}
-      <h1 className="w-[720px] h-[24px] rotate-[0deg] opacity-100 absolute top-[88px] left-[360px] font-inter font-bold text-[24px] leading-[100%] tracking-[3%] align-middle">Lista de Compras</h1>
-
-      {/* Formulário para adicionar itens */}
-      <div className="w-full h-16 opacity-100 absolute top-36 left-1/2 -translate-x-1/2 gap-3 rotate-0">
-        {/* Input do nome do item */}
+      {/* Formulário de inserção */}
+      
+        {/* Nome do item */}
         <input
           type="text"
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           placeholder="Digite um item"
-          className="border text-white h-10 border-purple-500 p-2 rounded w-64 text-black"
+          className="absolute left-100 top-43 border border-purple-500 p-2 h-12 rounded w-50 text-white"
         />
 
-        {/* Input da quantidade */}
+        {/* Quantidade */}
         <input
           type="number"
           value={newQuantidade}
           onChange={(e) => setNewQuantidade(e.target.value)}
-          placeholder="Quantidade"
-          className="border text-white h-10 border-purple-500 p-2 rounded w-40 text-black"
+          placeholder="Qtd"
+          className="absolute top-43 left-155 border border-purple-500 p-2 rounded w-24 h-12 text-white"
+        />
+        {/* Unidade de medida para escolher na quantidade */}
+        <select
+          value={unidadeMedida}
+          onChange={(e) => setUnidadeMedida(e.target.value)}
+          className='absolute top-43 left-180 border border-purple-500 p-2 rounded w-32 h-12 text-white'
+        >
+          <option value="Un">Unidade</option>
+          <option value="Kg">Kg</option>
+          <option value="L">L</option>
+
+
+        </select>
+        {/* Dropdown de categoria */}
+        <CategoriaDropdown 
+          selected={categoriaSelecionada}
+          onSelect={setCategoriaSelecionada}
         />
 
-        {/* Select da categoria */}
-        <select
-          value={categoriaSelecionada}
-          onChange={(e) => setCategoriaSelecionada(e.target.value)}
-          className="border text-white h-10 border-purple-500 p-2 rounded w-48 text-black"
-        >
-          <option value="">Selecione</option>
-          {/* {categorias.map((cat) => (
-            <option key={cat.nome} value={cat.nome}>
-              {cat.emoji} {cat.nome}
-            </option> */}
-            <CategoriaDropdown
-            selected={categoriaSelecionada}
-            onSelect= {setCategoriaSelecionada}
-            />
-          
-        </select>
-
-        {/* Botão de adicionar item */}
+        {/* Botão de adicionar */}
         <button
           onClick={handlerAddItem}
-          className="bg-[#7450AC] text-white h-10 px-4 rounded-full hover:bg-purple-600 transition"
+          className="absolute top-2/2 left-280 bg-[#7450AC] w-[40px] h-[40px] rounded-full p-[8px] flex items-center justify-center hover:bg-[#523480] transition-colors duration-300"
         >
-          +
+          <Plus className='w-5 h-5 text-white' />
         </button>
-      </div>
-
-      {/* Lista de itens adicionados */}
-      <ul className="space-y-2 p-8">
+        </div>
         
+      
+      
+
+      {/* Lista de itens renderizada */}
+      <ul className="space-y-4 mt-12 px-6">
         {items.map((item, index) => {
-          // Busca os detalhes da categoria para exibir cor, emoji e descrição
-          const cat = categoriaSelecionada.find((c) => c.nome === item.categoria)
+          // Busca os dados da categoria
+          const cat = categorias.find(c => c.nome === item.categoria)
+
           return (
             <li
               key={index}
-              className="bg-[#17171A] border border-purple-700 p-4 rounded flex justify-between items-start"
+              // Borda com cor da categoria
+              className={`bg-[#17171A] p-4 rounded flex justify-between items-start border border-purple-700'}`}
             >
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-3">
-                  {/* Checkbox do item comprado */}
+                  {/* Checkbox para marcar como comprado */}
                   <Checkbox checked={item.comprado} onChange={() => handlerToggleItem(index)} />
-                
-                  {/* Nome do item, com estilo riscado se comprado */}
-                  <span
-                    className={`cursor-pointer text-lg  ${
-                      item.comprado ? 'line-through text-gray-500' : ''
-                    }`}
-                    onClick={() => handlerClickItem(item.nome)}
+
+                  {/* Nome do item, riscado se comprado */}
+                  <span className={`cursor-pointer text-lg font-semibold ${item.comprado ? "line-through text-gray-500" : "text-white"}`}
                   >
-                    {item.nome}
+                      {item.nome}
                   </span>
 
-                  {/* Quantidade */}
+                  {/* Quantidade ao lado */}
                   <span className="text-sm text-gray-300">
-                    {item.quantidade && `(${item.quantidade})`}
+                    {item.quantidade && `(${item.quantidade} ${item.unidadeMedida})`}
                   </span>
-                </div>
-
-                {/* Categoria com emoji, cor e tooltip */}
+                  {/* Nome e emoji da categoria */}
                 {cat && (
                   <span
-                    className={`text-sm ${cat.cor}`}
+                    className={`ml-auto flex items-center gap-1 px-2 py-1 rounded-full text-sm opacity-50 ${cat.cor}`}
                     title={cat.descricao}
                   >
-                    {cat.emoji} {cat.nome}
+                    {/* Exibe o emoji (como ícone) */}
+                    <cat.emoji className="mr-1 w-4 h-4" />
+                    {cat.nome}
                   </span>
                 )}
+
+                </div>
+
+                
               </div>
 
-              {/* Botão para remover item */}
-              <button
-                onClick={() => handlerRemoveItem(index)}
-                className="bg-red-500 px-3 py-1 rounded-full text-white hover:bg-red-600 transition"
-              >
-                X
-              </button>
+              {/* Ícone de opções */}
+              <div className='relative'>
+                <button onClick={() => setMenuAberto(menuAberto === index ? null : index)}>
+                  <MoreVertical className="w-6 h-6 text-gray-400 hover:text-white" />
+                </button>
+                {menuAberto === index && (
+                  <div className="absolute right-0 mt-2 w-48 bg-[#1C1C1C] border border-purple-500 rounded-md shadow-lg z-10">
+                    {/* Opção de editar */}
+                    <button
+                      onClick={() => {
+                        // Aqui você pode implementar a lógica de edição
+                        console.log(`Editar item: ${item.nome}`)
+                      }}
+                      className="block px-4 py-2 text-sm text-white hover:bg-purple-600 w-full text-left"
+                    >
+                      Editar
+                    </button>
+                    {/* Opção de remover */}
+                    <button
+                      onClick={() => handlerRemoveItem(index)}
+                      className="block px-4 py-2 text-sm text-red-500 hover:bg-red-600 w-full text-left"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                )}
+              </div>
             </li>
           )
         })}
